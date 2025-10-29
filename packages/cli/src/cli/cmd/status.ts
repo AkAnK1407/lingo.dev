@@ -3,6 +3,7 @@ import {
   I18nConfig,
   localeCodeSchema,
   resolveOverriddenLocale,
+  applyLocaleRemap,
 } from "@lingo.dev/_spec";
 import { Command } from "interactive-commander";
 import Z from "zod";
@@ -135,9 +136,13 @@ export default new Command()
         }
       }
 
-      const targetLocales = flags.locale?.length
+      const rawTargets = flags.locale?.length
         ? flags.locale
         : i18nConfig!.locale.targets;
+      const mappedTargets = rawTargets.map((l) =>
+        applyLocaleRemap(l, i18nConfig!.locale.remap),
+      );
+      const targetLocales = Array.from(new Set(mappedTargets));
 
       // Global stats
       let totalSourceKeyCount = 0;
@@ -691,7 +696,11 @@ function validateParams(
       docUrl: "bucketNotFound",
     });
   } else if (
-    flags.locale?.some((locale) => !i18nConfig.locale.targets.includes(locale))
+    flags.locale?.some((locale) =>
+      !i18nConfig.locale.targets.includes(
+        applyLocaleRemap(locale, i18nConfig.locale.remap),
+      ),
+    )
   ) {
     throw new CLIError({
       message: `One or more specified locales do not exist in i18n.json locale.targets. Please add them to the list and try again.`,

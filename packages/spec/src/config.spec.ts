@@ -121,4 +121,16 @@ describe("I18n Config Parser", () => {
       `\nUnsupported locale: ${invalidLocaleConfig.locale.source}\nUnsupported locale: ${invalidLocaleConfig.locale.targets[1]}`,
     );
   });
+
+  it("should parse and keep locale.remap when provided", () => {
+    const configWithRemap = {
+      ...createV1_4Config(),
+      locale: {
+        ...createV1_4Config().locale,
+        remap: { "pt-BR": "pt" },
+      },
+    };
+    const result = parseI18nConfig(configWithRemap);
+    expect(result.locale.remap).toEqual({ "pt-BR": "pt" });
+  });
 });

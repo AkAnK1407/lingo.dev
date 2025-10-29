@@ -333,3 +333,27 @@ export const resolveOverriddenLocale = (
 export function normalizeLocale(locale: string): string {
   return locale.replaceAll("_", "-").replace(/([a-z]{2,3}-)r/, "$1");
 }
+
+/**
+ * Applies a remapping of external → internal locale codes if configured.
+ * Both the input and mapping keys/values are normalized before comparison.
+ * If no mapping is present or no entry matches, returns the original locale.
+ */
+export function applyLocaleRemap(
+  locale: string,
+  remap?: Record<string, string>,
+): string {
+  if (!remap || Object.keys(remap).length === 0) {
+    return locale;
+  }
+
+  const normalizedInput = normalizeLocale(locale);
+
+  // Normalize mapping keys and values for robust comparison
+  const normalizedRemap: Record<string, string> = {};
+  for (const [from, to] of Object.entries(remap)) {
+    normalizedRemap[normalizeLocale(from)] = normalizeLocale(to);
+  }
+
+  return normalizedRemap[normalizedInput] || locale;
+}

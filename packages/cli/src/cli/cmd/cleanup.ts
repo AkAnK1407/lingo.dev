@@ -1,4 +1,4 @@
-import { I18nConfig, resolveOverriddenLocale } from "@lingo.dev/_spec";
+import { I18nConfig, resolveOverriddenLocale, applyLocaleRemap } from "@lingo.dev/_spec";
 import { Command } from "interactive-commander";
 import _ from "lodash";
 import { getConfig } from "../utils/config";
@@ -46,9 +46,13 @@ export default new Command()
         );
       }
 
-      const targetLocales = options.locale
+      const rawTargets = options.locale
         ? [options.locale]
         : i18nConfig!.locale.targets;
+      const mappedTargets = rawTargets.map((l) =>
+        applyLocaleRemap(l, i18nConfig!.locale.remap),
+      );
+      const targetLocales = Array.from(new Set(mappedTargets));
 
       // Process each bucket
       for (const bucket of buckets) {

@@ -3,7 +3,7 @@ import { Listr } from "listr2";
 import { minimatch } from "minimatch";
 
 import { colors } from "../../constants";
-import { resolveOverriddenLocale } from "@lingo.dev/_spec";
+import { resolveOverriddenLocale, applyLocaleRemap } from "@lingo.dev/_spec";
 import { getBuckets } from "../../utils/buckets";
 import { commonTaskRendererOptions } from "./_const";
 import { CmdRunContext } from "./_types";
@@ -18,14 +18,19 @@ export default async function plan(
     buckets = buckets.filter((b) => input.flags.bucket!.includes(b.type));
   }
 
-  const _sourceLocale = input.flags.sourceLocale || input.config!.locale.source;
+  const _sourceLocale = applyLocaleRemap(
+    input.flags.sourceLocale || input.config!.locale.source,
+    input.config!.locale.remap,
+  );
   if (!_sourceLocale) {
     throw new Error(
       `No source locale provided. Use --source-locale to specify the source locale or add it to i18n.json (locale.source)`,
     );
   }
-  const _targetLocales =
-    input.flags.targetLocale || input.config!.locale.targets;
+  const rawTargets = input.flags.targetLocale || input.config!.locale.targets;
+  const _targetLocales = Array.from(
+    new Set(rawTargets.map((l) => applyLocaleRemap(l, input.config!.locale.remap))),
+  );
   if (!_targetLocales.length) {
     throw new Error(
       `No target locales provided. Use --target-locale to specify the target locales or add them to i18n.json (locale.targets)`,

@@ -486,7 +486,33 @@ export const configV1_10Definition = extendConfigDefinition(
 );
 
 // exports
-export const LATEST_CONFIG_DEFINITION = configV1_10Definition;
+// v1.10 -> v1.11
+// Changes: Add optional locale.remap map for external → internal locale code mapping
+export const configV1_11Definition = extendConfigDefinition(
+  configV1_10Definition,
+  {
+    createSchema: (baseSchema) =>
+      baseSchema.extend({
+        locale: baseSchema.shape.locale.extend({
+          remap: Z.record(Z.string(), Z.string())
+            .optional()
+            .describe(
+              "Map external → internal locale codes, e.g. { 'pt-BR': 'pt' }. If specified, tools will remap incoming locale identifiers before processing.",
+            ),
+        }),
+      }),
+    createDefaultValue: (baseDefaultValue) => ({
+      ...baseDefaultValue,
+      version: "1.11",
+    }),
+    createUpgrader: (oldConfig) => ({
+      ...oldConfig,
+      version: "1.11",
+    }),
+  },
+);
+
+export const LATEST_CONFIG_DEFINITION = configV1_11Definition;
 
 export type I18nConfig = Z.infer<(typeof LATEST_CONFIG_DEFINITION)["schema"]>;
 

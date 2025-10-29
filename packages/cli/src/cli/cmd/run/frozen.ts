@@ -9,7 +9,7 @@ import { commonTaskRendererOptions } from "./_const";
 import { getBuckets } from "../../utils/buckets";
 import createBucketLoader from "../../loaders";
 import { createDeltaProcessor } from "../../utils/delta";
-import { resolveOverriddenLocale } from "@lingo.dev/_spec";
+import { resolveOverriddenLocale, applyLocaleRemap } from "@lingo.dev/_spec";
 
 export default async function frozen(input: CmdRunContext) {
   console.log(chalk.hex(colors.orange)("[Frozen]"));
@@ -33,9 +33,14 @@ export default async function frozen(input: CmdRunContext) {
       .filter((bucket: any) => bucket.paths.length > 0);
   }
 
-  const _sourceLocale = input.flags.sourceLocale || input.config!.locale.source;
-  const _targetLocales =
-    input.flags.targetLocale || input.config!.locale.targets;
+  const _sourceLocale = applyLocaleRemap(
+    input.flags.sourceLocale || input.config!.locale.source,
+    input.config!.locale.remap,
+  );
+  const rawTargets = input.flags.targetLocale || input.config!.locale.targets;
+  const _targetLocales = Array.from(
+    new Set(rawTargets.map((l) => applyLocaleRemap(l, input.config!.locale.remap))),
+  );
 
   return new Listr<CmdRunContext>(
     [
