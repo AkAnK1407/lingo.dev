@@ -5,6 +5,7 @@ import {
   resolveLocaleCode,
   resolveOverriddenLocale,
 } from "./locales";
+import { applyLocaleRemap } from "./locales";
 
 describe("normalizeLocale", () => {
   it("should return normalized locale for short locale codes", () => {
@@ -86,5 +87,21 @@ describe("resolveOverridenLocale", () => {
   it("should return the same locale if no recognized delimiter is found", () => {
     expect(resolveOverriddenLocale("enUS", "_")).toEqual("enUS");
     expect(resolveOverriddenLocale("frFR", "-")).toEqual("frFR");
+  });
+});
+
+describe("applyLocaleRemap", () => {
+  it("should remap external full code to internal short code", () => {
+    const remap = { "pt-BR": "pt" };
+    expect(applyLocaleRemap("pt-BR", remap)).toEqual("pt");
+  });
+
+  it("should normalize mapping keys and values before matching", () => {
+    const remap = { pt_BR: "pt" };
+    expect(applyLocaleRemap("pt-BR", remap)).toEqual("pt");
+  });
+
+  it("should return original when no mapping present", () => {
+    expect(applyLocaleRemap("fr-FR", undefined)).toEqual("fr-FR");
   });
 });

@@ -3,7 +3,7 @@ import _ from "lodash";
 import Ora from "ora";
 import { getConfig } from "../utils/config";
 import { getBuckets } from "../utils/buckets";
-import { resolveOverriddenLocale } from "@lingo.dev/_spec";
+import { resolveOverriddenLocale, applyLocaleRemap } from "@lingo.dev/_spec";
 import createBucketLoader from "../loaders";
 import { minimatch } from "minimatch";
 import { confirm } from "@inquirer/prompts";
@@ -75,10 +75,14 @@ export default new Command()
         }
       }
       const sourceLocale = i18nConfig.locale.source;
-      const targetLocales =
+      const rawTargets =
         options.locale && options.locale.length
           ? options.locale
           : i18nConfig.locale.targets;
+      const mappedTargets = rawTargets.map((l) =>
+        applyLocaleRemap(l, i18nConfig.locale.remap),
+      );
+      const targetLocales = Array.from(new Set(mappedTargets));
       let removedAny = false;
       for (const bucket of buckets) {
         console.log();
